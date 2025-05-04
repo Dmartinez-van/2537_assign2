@@ -1,0 +1,12 @@
+<%- include("templates/header")%>
+
+<h3>Welcome <%= user %>!</h3>
+<img src="<%= imgSrc %>" alt="anImage" style="width:1050px"/>
+<form action="/" method="GET">
+    <input type="submit" value="Home" />
+</form>
+<form action="/logout" method="POST">
+    <input type="submit" value="Logout" />
+</fom>
+
+<%- include("templates/footer")%>

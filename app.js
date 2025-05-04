@@ -10,6 +10,9 @@ require("dotenv").config();
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+// Set ejs as render
+app.set("view engine", "ejs");
+
 /* secret information section */
 const mongodb_host = process.env.MONGODB_HOST;
 const mongodb_user = process.env.MONGODB_USER;
@@ -42,27 +45,11 @@ app.use(express.static(path.join(__dirname, "/public")));
 
 app.get("/", (req, res) => {
   // if user not logged in, Display two buttons: login and singup
-  if (!req.session.auth) {
-    res.send(`
-            <h1>Currently not logged in, no session</h1>
-            <form action="/signup" method="GET">
-                <button type="submit">Signup</button>
-            </form>
-            <form action="/login" method="GET">
-                <button type="submit">Login</button>
-            </form>
-        `);
-  } else {
-    res.send(`
-            <h1>Hello, ${req.session?.username || "User"}!
-            <form action="/members" method="GET">
-                <button type="submit">Go to Members Area</button>
-            </form>
-            <form action="/logout" method="POST">
-                <button type="submit">Logout</button>
-            </form>
-        `);
-  }
+  console.log(req.session?.username);
+  res.render("index", {
+    auth: req.session.auth,
+    username: req.session?.username,
+  });
 });
 
 app.get("/signup", (req, res) => {
@@ -217,35 +204,15 @@ app.get("/members", (req, res) => {
     return res.redirect("/");
   }
 
-  return res.send(`
-            <h3>Welcome to members area, ${
-              req.session?.username || "User"
-            }!</h3>
-            <img src="${imgSrc}" alt="anImage" style="width:1050px"/>
-            <form action="/" method="GET">
-                <input type="submit" value="Home" />
-            </form>
-            <form action="/logout" method="POST">
-                <input type="submit" value="Logout" />
-            </fom>
-        `);
+  return res.render("members", { user: req.session.username, imgSrc });
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("connect.sid");
   req.session.destroy();
-  return res.send(`
-            <h3>You are logged out</h3>
-            <form action="/" method="GET">
-                <input type="submit" value="Home" />
-            </form>
-        `);
-});
 
-// app.get("*dummy", (req, res) => {
-//   res.status(404);
-//   res.send("Page not found - 404");
-// });
+  res.render("logout");
+});
 
 // Note: app.use, not app.get
 app.use(function (req, res) {
