@@ -6,16 +6,6 @@ const MongoStore = require("connect-mongo");
 const bcrypt = require("bcrypt");
 const saltRounds = 12;
 
-// converts jpegs to png (got the suggestion from chatgpt).
-// Also could've looked into ffmpeg instead, but I wanna try this.
-// const sharp = require("sharp");
-// sample code:
-// sharp('input.jpg')
-//   .png()
-//   .toFile('output.png')
-//   .then(() => console.log('Conversion complete!'))
-//   .catch(err => console.error(err));
-
 require("dotenv").config();
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -222,20 +212,6 @@ app.get("/members", (req, res) => {
   } else {
     imgSrc = "images/eq3.jpeg";
   }
-
-  // Sure it runs everytime a user hits this page...
-  // I just wanted to test it out.
-  // sharp("public/" + imgSrc)
-  //   .png()
-  //   .toFile("./public/images/output.png")
-  //   .then(() => console.log("Conversion complete!"))
-  //   .catch((err) => console.error(err));
-
-  // <img src="/images/output.png" alt="anImage" style="width:1050px"/>
-  // Using sharp results in:
-  // - A png file
-  // - a larger file size (0.7Mb jpeg vs 2.9Mb png)
-  // - Cropped png image (could be fixed with additional options)
 
   if (!req.session.auth) {
     return res.redirect("/");
