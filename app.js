@@ -44,8 +44,6 @@ app.use(
 app.use(express.static(path.join(__dirname, "/public")));
 
 app.get("/", (req, res) => {
-  // if user not logged in, Display two buttons: login and singup
-
   res.render("index", {
     auth: req.session.auth,
     username: req.session?.username,
@@ -53,26 +51,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/signup", (req, res) => {
-  res.send(`
-            <div>Create User</div>
-            <form action="/createUser" method="POST">
-                <input name="username" type="text" placeholder="name">
-                <input name="email" type="text" placeholder="email">
-                <input name="password" type="password" placeholder="password" id="password">
-                <button type="submit">Submit</button>
-            </form>
-            <button id="toggleShowPass" onclick="showPass()">show password</button>
-            <script>
-                function showPass() {
-                    const passInput = document.getElementById("password");
-                    passInput.type = passInput.type === "password" ? "text" : "password";
-                    
-                    const toggleBtn = document.getElementById("toggleShowPass");
-                    toggleBtn.textContent = toggleBtn.textContent === "show password" 
-                                                ? "hide password" : "show password";
-                };
-            </script>
-        `);
+  res.render("signup");
 });
 
 app.post("/createUser", async (req, res) => {
