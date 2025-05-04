@@ -45,7 +45,7 @@ app.use(express.static(path.join(__dirname, "/public")));
 
 app.get("/", (req, res) => {
   // if user not logged in, Display two buttons: login and singup
-  console.log(req.session?.username);
+
   res.render("index", {
     auth: req.session.auth,
     username: req.session?.username,
