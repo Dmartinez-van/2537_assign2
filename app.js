@@ -161,23 +161,14 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/members", (req, res) => {
-  // Math.random() generates random num from 0 to 1 (1 not inclusive)
-  // Multiply result by 3 to get some value up to 3. Then add 1 to be inclusive of 3.
-  const randomNum = Math.floor(Math.random() * 3) + 1;
-  let imgSrc;
-  if (randomNum === 1) {
-    imgSrc = "images/eq1.jpeg";
-  } else if (randomNum === 2) {
-    imgSrc = "images/eq2.png";
-  } else {
-    imgSrc = "images/eq3.jpeg";
-  }
-
   if (!req.session.auth) {
     return res.redirect("/");
   }
 
-  return res.render("members", { user: req.session.username, imgSrc });
+  return res.render("members", {
+    user: req.session.username,
+    imgs: ["images/eq1.jpeg", "images/eq2.png", "images/eq3.jpeg"],
+  });
 });
 
 app.post("/logout", (req, res) => {
