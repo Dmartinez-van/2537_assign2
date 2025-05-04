@@ -71,13 +71,7 @@ app.post("/createUser", async (req, res) => {
     console.log(valid.error);
     const errorDetails = valid.error.details[0].message;
 
-    return res.send(`
-            <h3>Try again</h3>
-            <p>${errorDetails}</p>
-            <form action="/signup" method="GET">
-                <input type="submit" value="Go Back" />
-            </form>
-        `);
+    return res.render("signupError", { errorDetails });
   }
 
   const hashedPass = await bcrypt.hash(password, saltRounds);
