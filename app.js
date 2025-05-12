@@ -1,6 +1,7 @@
 const express = require("express");
 const session = require("express-session");
 const path = require("path");
+const url = require("url");
 const Joi = require("joi");
 const MongoStore = require("connect-mongo");
 const bcrypt = require("bcrypt");
@@ -43,10 +44,23 @@ app.use(
 
 app.use(express.static(path.join(__dirname, "/public")));
 
+const navlinks = [
+  { name: "Home", path: "/", id: "homeButton" },
+  { name: "Members", path: "/members", id: "membersButton" },
+  { name: "Admin", path: "/admin", id: "adminButton" },
+];
+
+app.use("/", (req, res, next) => {
+  app.locals.navlinks = navlinks;
+  app.locals.currentURL = url.parse(req.url).pathname;
+  next();
+});
+
 app.get("/", (req, res) => {
   res.render("index", {
     auth: req.session.auth,
     username: req.session?.username,
+    isAdmin: true,
   });
 });
 
@@ -79,6 +93,7 @@ app.post("/createUser", async (req, res) => {
     username: name,
     email,
     password: hashedPass,
+    isAdmin: false,
   });
 
   req.session.auth = true;
@@ -166,6 +181,27 @@ app.get("/members", (req, res) => {
   }
 
   return res.render("members", {
+    user: req.session.username,
+    imgs: ["images/eq1.jpeg", "images/eq2.png", "images/eq3.jpeg"],
+  });
+});
+
+app.get("/admin", (req, res) => {
+  if (!req.session.auth) {
+    return res.redirect("/");
+  }
+
+  if (req.session.isAdmin !== true) {
+    return res.send(`
+        <h1>Access Denied</h1>
+        <p>You do not have permission to access this page.</p>
+        <form action="/" method="GET">
+            <input type="submit" value="Home" />
+        </form>
+    `);
+  }
+
+  return res.render("admin", {
     user: req.session.username,
     imgs: ["images/eq1.jpeg", "images/eq2.png", "images/eq3.jpeg"],
   });
