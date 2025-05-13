@@ -12,41 +12,7 @@
       logged in, go checkout stuff. <% } %>
     </p>
     <div class="mt-10 flex items-center justify-center gap-x-6">
-      <% if (!auth) { %>
-      <form action="/login" method="GET">
-        <button
-          type="submit"
-          class="cursor-pointer w-24 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          Login
-        </button>
-      </form>
-      <form action="/signup" method="GET">
-        <button
-          type="submit"
-          class="cursor-pointer text-sm/6 font-semibold text-gray-900"
-        >
-          Signup <span aria-hidden="true">→</span>
-        </button>
-      </form>
-      <% } else { %>
-      <form action="/members" method="GET">
-        <button
-          type="submit"
-          class="cursor-pointer w-24 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          Members Area
-        </button>
-      </form>
-      <form action="/logout" method="POST">
-        <button
-          type="submit"
-          class="cursor-pointer text-sm/6 font-semibold text-gray-900"
-        >
-          Logout <span aria-hidden="true">→</span>
-        </button>
-      </form>
-      <% } %>
+      <p>Some other content</p>
     </div>
   </div>
 </div>

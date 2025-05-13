@@ -4,6 +4,7 @@ const path = require("path");
 const url = require("url");
 const Joi = require("joi");
 const MongoStore = require("connect-mongo");
+const { ObjectId } = require("mongodb");
 const bcrypt = require("bcrypt");
 const saltRounds = 12;
 
@@ -104,24 +105,7 @@ app.post("/createUser", async (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  res.send(`
-            <h3>Login</h3>
-            <form action="/login" method="POST">
-                <input name="email" type="text" placeholder="email" >
-                <input name="password" type="password" placeholder="password" id="password">
-                <button>Login</button>
-            </form>
-            <script>
-                function showPass() {
-                    const passInput = document.getElementById("password");
-                    passInput.type = passInput.type === "password" ? "text" : "password";
-                    
-                    const toggleBtn = document.getElementById("toggleShowPass");
-                    toggleBtn.textContent = toggleBtn.textContent === "show password" 
-                                                ? "hide password" : "show password";
-                };
-            </script>
-        `);
+  res.render("login");
 });
 
 app.post("/login", async (req, res) => {
@@ -134,27 +118,21 @@ app.post("/login", async (req, res) => {
   const valid = schema.validate({ email });
 
   if (valid.error != null) {
-    return res.send(`
-        <p>${valid.error.details[0].message}</p>
-        <form action="/login" method="GET">
-                <input type="submit" value="Back to Login" />
-            </form>
-        `);
+    return res.render("invalidLogin", {
+      errorDetails: valid.error.details[0].message,
+    });
   }
 
   const foundUser = await userCollection
     .find({ email })
-    .project({ email: 1, username: 1, password: 1, _id: 1 })
+    .project({ email: 1, username: 1, password: 1, _id: 1, isAdmin: 1 })
     .toArray();
 
   if (foundUser.length != 1) {
     console.log("user not found");
-    return res.send(`
-        <p>Invalid email/password combination</p>
-        <form action="/login" method="GET">
-                <input type="submit" value="Back to Login" />
-            </form>
-        `);
+    return res.render("invalidLogin", {
+      errorDetails: "Incorrect password/username (no user)",
+    });
   }
 
   if (await bcrypt.compare(password, foundUser[0].password)) {
@@ -162,20 +140,22 @@ app.post("/login", async (req, res) => {
     req.session.auth = true;
     req.session.username = foundUser[0].username;
     req.session.cookie.maxAge = expireTime;
+    req.session.isAdmin = foundUser[0].isAdmin;
+
+    app.locals.isAdmin = req.session.isAdmin;
+    app.locals.auth = req.session.auth;
 
     return res.redirect("/members");
   } else {
     console.log("incorrect password");
-    return res.send(`
-        <p>Invalid email/password combination</p>
-        <form action="/login" method="GET">
-                <input type="submit" value="Back to Login" />
-            </form>
-        `);
+    return res.render("invalidLogin", {
+      errorDetails: "Incorrect password/username",
+    });
   }
 });
 
 app.get("/members", (req, res) => {
+  console.log("locals.auth: ", app.locals.auth);
   if (!req.session.auth) {
     return res.redirect("/");
   }
@@ -186,43 +166,101 @@ app.get("/members", (req, res) => {
   });
 });
 
-app.get("/admin", (req, res) => {
+app.get("/admin", async (req, res) => {
+  // Protect against unauthenticated users
   if (!req.session.auth) {
-    return res.redirect("/");
+    return res.redirect("/login");
   }
 
+  console.log("isAdmin: ", req.session.isAdmin);
+
+  // Protect against non-admin users
   if (req.session.isAdmin !== true) {
-    return res.send(`
-        <h1>Access Denied</h1>
-        <p>You do not have permission to access this page.</p>
-        <form action="/" method="GET">
-            <input type="submit" value="Home" />
-        </form>
-    `);
+    res.status(403);
+    console.log("403 - Forbidden");
+    return res.render("invalidAdmin");
   }
 
-  return res.render("admin", {
-    user: req.session.username,
-    imgs: ["images/eq1.jpeg", "images/eq2.png", "images/eq3.jpeg"],
-  });
+  try {
+    // Get all users from the database
+    const allUsers = await userCollection
+      .find({})
+      .project({ username: 1, email: 1, isAdmin: 1, _id: 1 })
+      .toArray();
+
+    // Render the admin page with the list of users
+    res.render("admin", {
+      users: allUsers,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500);
+    res.render("error", { errorMessage: err.message });
+  }
+});
+
+app.post("/promoteUser", async (req, res) => {
+  const userId = req.body.userId;
+  const id = new ObjectId(userId);
+
+  try {
+    await userCollection.updateOne(
+      { _id: id },
+      {
+        $set: {
+          isAdmin: true,
+        },
+      }
+    );
+
+    res.redirect("/admin");
+  } catch (err) {
+    console.error(err);
+    res.status(500);
+    res.render("error", { errorMessage: err.message });
+  }
+});
+
+app.post("/demoteUser", async (req, res) => {
+  const userId = req.body.userId;
+  const id = new ObjectId(userId);
+
+  try {
+    await userCollection.updateOne(
+      { _id: id },
+      {
+        $set: {
+          isAdmin: false,
+        },
+      }
+    );
+
+    res.redirect("/admin");
+  } catch (err) {
+    console.error(err);
+    res.status(500);
+    res.render("error", { errorMessage: err.message });
+  }
+});
+
+app.get("/logout", (req, res) => {
+  return res.render("logout");
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("connect.sid");
   req.session.destroy();
+  app.locals.auth = false;
+  app.locals.isAdmin = false;
+  console.log("Session destroyed");
 
-  res.render("logout");
+  return res.redirect("/logout");
 });
 
 // Note: app.use, not app.get
 app.use(function (req, res) {
   res.status(404);
-  res.send(`
-        <h1>Page not found - 404</h1>
-        <form action="/" method="GET">
-            <input type="submit" value="Home" />
-        </form>
-    `);
+  res.render("404");
 });
 
 app.listen(PORT, () => {
