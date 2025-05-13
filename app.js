@@ -105,6 +105,7 @@ app.post("/createUser", async (req, res) => {
 });
 
 app.get("/login", (req, res) => {
+  console.log("locals.currentURL: ", app.locals.currentURL);
   res.render("login");
 });
 

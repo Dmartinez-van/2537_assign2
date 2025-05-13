@@ -85,7 +85,12 @@
                 <form action="/login" method="GET">
                 <button
                   type="submit"
-                  class="cursor-pointer text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium text-white cursor-pointer z-10"
+                  class="navbar-button <% if (locals.currentURL === '/login') { %> 
+                      bg-gray-900 text-white 
+                      <% } else { %>
+                          text-gray-300 hover:bg-gray-700 hover:text-white  
+                      <% } %>
+                      rounded-md px-3 py-2 text-sm font-medium text-white cursor-pointer z-10" 
                 >
                   Login
                 </button>
@@ -94,7 +99,12 @@
                 <form action="/logout" method="POST">
                 <button
                   type="submit"
-                  class="cursor-pointer text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium text-white cursor-pointer z-10"
+                  class="navbar-button <% if (locals.currentURL === '/logout') { %> 
+                      bg-gray-900 text-white 
+                      <% } else { %>
+                          text-gray-300 hover:bg-gray-700 hover:text-white  
+                      <% } %>
+                      rounded-md px-3 py-2 text-sm font-medium text-white cursor-pointer z-10" 
                 >
                   Logout </span>
                 </button>
@@ -125,6 +135,38 @@
                 <%= locals.navlinks[i].name %>
                         </a>
                 <% } %>
+
+                <% if (!locals.auth) { %>
+                <form action="/login" method="GET">
+                <button
+                  type="submit"
+                  class="navbar-button block rounded-md w-full text-left
+                        <% if (locals.currentURL === '/login') { %> 
+                        bg-gray-900 text-white 
+                        <% } else { %>
+                            text-gray-300 hover:bg-gray-700 hover:text-white  
+                        <% } %>
+                        px-3 py-2 text-base font-medium text-white cursor-pointer z-10"
+                >
+                  Login
+                </button>
+              </form>
+              <% } else if (locals.auth) { %>
+                <form action="/logout" method="POST">
+                <button
+                  type="submit"
+                  class="navbar-button block rounded-md w-full text-left
+                        <% if (locals.currentURL === '/login') { %> 
+                        bg-gray-900 text-white 
+                        <% } else { %>
+                            text-gray-300 hover:bg-gray-700 hover:text-white  
+                        <% } %>
+                        px-3 py-2 text-base font-medium text-white cursor-pointer z-10"
+                >
+                  Logout </span>
+                </button>
+              </form>
+              <% } %>
       
     </div>
   </div>
