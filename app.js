@@ -57,6 +57,27 @@ app.use("/", (req, res, next) => {
   next();
 });
 
+const checkAuthorization = (req, res, next) => {
+  if (!req.session.auth) {
+    return res.redirect("/");
+  } else if (!req.session.isAdmin) {
+    res.status(403);
+    console.log("403 - Forbidden");
+    return res.render("invalidAdmin");
+  }
+
+  return next();
+};
+
+const checkAuth = (req, res, next) => {
+  if (req.session.auth) {
+    next();
+  } else {
+    res.status(401);
+    res.redirect("/");
+  }
+};
+
 app.get("/", (req, res) => {
   res.render("index", {
     auth: req.session.auth,
@@ -155,11 +176,11 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/members", (req, res) => {
+app.get("/members", checkAuth, (req, res) => {
   console.log("locals.auth: ", app.locals.auth);
-  if (!req.session.auth) {
-    return res.redirect("/");
-  }
+  // if (!req.session.auth) {
+  //   return res.redirect("/");
+  // }
 
   return res.render("members", {
     user: req.session.username,
@@ -167,20 +188,20 @@ app.get("/members", (req, res) => {
   });
 });
 
-app.get("/admin", async (req, res) => {
-  // Protect against unauthenticated users
-  if (!req.session.auth) {
-    return res.redirect("/login");
-  }
+app.get("/admin", checkAuthorization, async (req, res) => {
+  // // Protect against unauthenticated users
+  // if (!req.session.auth) {
+  //   return res.redirect("/login");
+  // }
 
-  console.log("isAdmin: ", req.session.isAdmin);
+  // console.log("isAdmin: ", req.session.isAdmin);
 
-  // Protect against non-admin users
-  if (req.session.isAdmin !== true) {
-    res.status(403);
-    console.log("403 - Forbidden");
-    return res.render("invalidAdmin");
-  }
+  // // Protect against non-admin users
+  // if (req.session.isAdmin !== true) {
+  //   res.status(403);
+  //   console.log("403 - Forbidden");
+  //   return res.render("invalidAdmin");
+  // }
 
   try {
     // Get all users from the database
@@ -200,7 +221,7 @@ app.get("/admin", async (req, res) => {
   }
 });
 
-app.post("/promoteUser", async (req, res) => {
+app.post("/promoteUser", checkAuthorization, async (req, res) => {
   const userId = req.body.userId;
   const id = new ObjectId(userId);
 
@@ -222,7 +243,7 @@ app.post("/promoteUser", async (req, res) => {
   }
 });
 
-app.post("/demoteUser", async (req, res) => {
+app.post("/demoteUser", checkAuthorization, async (req, res) => {
   const userId = req.body.userId;
   const id = new ObjectId(userId);
 
